@@ -9,7 +9,7 @@ services:
     name: VeGaMusic
     env: python
     buildCommand: pip3 install --no-cache-dir --upgrade --requirement requirements.txt
-    startCommand: python3 bot.py
+    startCommand: ["python3", "-m", "bot", "plugins"]
     region: Virginia
     envVars:
       - key: STRING_SESSION
