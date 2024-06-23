@@ -59,7 +59,7 @@ async def startsudo(c: Client, m: Message):
         await m.reply_text("مرحبا! أنا ثيو. لاكتشاف وظائفي ، ابدأ محادثة معي.", reply_markup=keyboard)
 
 
-@Client.on_message(filters.command("start", prefix) & ~filters.private)
+@Client.on_message(filters.command("start", prefix) & filters.private)
 async def start(c: Client, m: Message):
     await confirm_user(c, m)
     if m.chat.type == enums.ChatType.PRIVATE:
