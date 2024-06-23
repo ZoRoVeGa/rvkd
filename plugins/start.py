@@ -3,7 +3,7 @@ from pyrogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardBu
     KeyboardButton
 from config import prefix, get_bot_information
 from database import get_db_botname
-from localization import use_chat_lang
+
 from plugins.commands import command2
 from plugins.general import confirm_user
 from utils import commands
@@ -11,7 +11,6 @@ from config import developer
 
 
 @Client.on_message(filters.command("start", prefix) & filters.user(developer))
-@use_chat_lang()
 async def startsudo(c: Client, m: Message, strings):
     if m.chat.type == "private":
         t = """💌╖اهلا بيك حبيبي آلمـطـور
@@ -66,7 +65,6 @@ async def startsudo(c: Client, m: Message, strings):
 
 @Client.on_message(filters.command("start", prefix) & ~filters.user(developer))
 @Client.on_callback_query(filters.regex("^start$"))
-@use_chat_lang()
 async def start(c: Client, m: Message, strings):
     if m.chat.type == "private":
         if get_db_botname() is None:
@@ -104,7 +102,6 @@ async def start(c: Client, m: Message, strings):
 
 
 @Client.on_callback_query(filters.regex("^start_back$"))
-@use_chat_lang()
 async def start_back(c: Client, m: CallbackQuery, strings):
     if m.message.chat.type == "private":
         if get_db_botname() is None:
@@ -139,7 +136,6 @@ async def start_back(c: Client, m: CallbackQuery, strings):
                                    reply_markup=keyboard)
 
 @Client.on_callback_query(filters.regex("^infos$"))
-@use_chat_lang()
 async def infos(c: Client, m: CallbackQuery, strings):
     res = """
 ╭──── • ◈ • ────╮
