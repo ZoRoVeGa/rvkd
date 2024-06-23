@@ -59,11 +59,16 @@ async def startsudo(c: Client, m: Message):
         await m.reply_text("مرحبا! أنا ثيو. لاكتشاف وظائفي ، ابدأ محادثة معي.", reply_markup=keyboard)
 
 
-@Client.on_message(filters.command("start", prefix) & ~filters.user(developer) & filters.private)
-async def start(c: Client, m: Message):
-    await confirm_user(c, m)
-    if m.chat.type == enums.ChatType.PRIVATE:
-        botname = get_db_botname() or "القائد"
+
+@Client.on_message(filters.command("start", prefix) & ~filters.user(developer))
+@Client.on_callback_query(filters.regex("^start$"))
+@use_chat_lang()
+async def start(c: Client, m: Message, strings):
+    if m.chat.type == "private":
+        if get_db_botname() is None:
+            botname = "سيمو"
+        else:
+            botname = get_db_botname()
         x = f"""
 ـــــــــــــــــــــــــــــــــــــــــــــــــــــــــ
 🎤╖ أهلآ بك عزيزي أنا بوت {botname}
@@ -74,13 +79,24 @@ async def start(c: Client, m: Message):
 ⬆️╜ سيتم ترقيتك مالك في البوت
 ـــــــــــــــــــــــــــــــــــــــــــــــــــــــــ
         """
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton("الاوامر 📚", callback_data="commandss")] + [InlineKeyboardButton("ℹ️ حول", callback_data="infos")], [InlineKeyboardButton("تغير اللغه 🌐", callback_data="chlang")], [InlineKeyboardButton("ضيـف البـوت لمجمـوعتـك ✅", url=f"https://t.me/{get_bot_information()[1]}?startgroup=dream")]])
-        async for photo in c.get_chat_photos(get_bot_information()[1], limit=1):
-            await m.reply_photo(photo.file_id, caption=x, reply_markup=keyboard)
-    else:
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton("🤖 ابدأ محادثة", url=f"https://t.me/{get_bot_information()[1]}?start=start")]])
-        await m.reply_text("مرحبا! أنا فينوم . لاكتشاف وظائفي ، ابدأ محادثة معي.", reply_markup=keyboard)
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(strings("commands_btn"), callback_data="commandss")] +
+            [InlineKeyboardButton(strings("infos_btn"), callback_data="infos")],
+            [InlineKeyboardButton(strings("language_btn"), callback_data="chlang")],
+            [InlineKeyboardButton("ضيـف البـوت لمجمـوعتـك ✅",
+                                  url=f"https://t.me/{get_bot_information()[1]}?startgroup=new")],
+        ])
+        async for photo in c.iter_profile_photos(get_bot_information()[0], limit=1):
+            await m.reply_photo(photo.file_id, caption=x,
+                                reply_markup=keyboard)
 
+        await confirm_user(c, m)
+    else:
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(strings("start_chat"), url=f"https://t.me/{get_bot_information()[1]}?start=start")]
+        ])
+        await m.reply_text(strings("group"),
+                           reply_markup=keyboard)
 
 @Client.on_callback_query(filters.regex("^start_back$"))
 async def start_back(c: Client, m: CallbackQuery):
