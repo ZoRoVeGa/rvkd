@@ -6,7 +6,7 @@ from database import get_db_botname
 
 from plugins.commands import command2
 from plugins.general import confirm_user
-from utils import commands
+
 from config import developer
 
 
