@@ -1,23 +1,22 @@
-from pyrogram import Client, filters
+from pyrogram import Client, filters, enums
 from pyrogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, Message, ReplyKeyboardMarkup,\
     KeyboardButton
-from config import prefix, get_bot_information
+from config import prefix, developer, get_bot_information 
 from database import get_db_botname
-
 from plugins.commands import command2
 from plugins.general import confirm_user
 
-from config import developer
-
 
 @Client.on_message(filters.command("start", prefix) & filters.user(developer))
-async def startsudo(c: Client, m: Message, strings):
-    if m.chat.type == "private":
+async def startsudo(c: Client, m: Message):
+    await confirm_user(c, m)
+    if m.chat.type == enums.ChatType.PRIVATE:
         t = """💌╖اهلا بيك حبيبي آلمـطـور
 ⚙️╢ تقدر تتحكم باوامر البوت عن طريق
-🔍╢ الكيبور اللي ظهرلك تحت ↘️
-🔰╜ للدخول لقناة السورس [دوس هنا](https://t.me/FTTUTY)"""
+🔍╢ الكيبورد اللي ظهرلك تحت ↘️
+🔰╜ للدخول لقناة السورس [دوس هنا](https://t.me/M_T_lI)"""
         keyboard = ReplyKeyboardMarkup(keyboard=[
+            [KeyboardButton("⏬ قفل الكيبورد ⏬")],
             [KeyboardButton("تعطيل التواصل 🔰")] +
             [KeyboardButton("تفعيل التواصل ⚡️")],
             [KeyboardButton("تعطيل الاذاعه 🔕")] +
@@ -54,23 +53,17 @@ async def startsudo(c: Client, m: Message, strings):
             resize_keyboard=True,
             one_time_keyboard=False
         )
-        await m.reply_text(t, reply_markup=keyboard, parse_mode="Markdown")
+        await m.reply_text(t, reply_markup=keyboard, parse_mode=enums.ParseMode.MARKDOWN)
     else:
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(strings("start_chat"), url=f"https://t.me/{get_bot_information()[1]}?start=start")]
-        ])
-        await m.reply_text(strings("group"),
-                           reply_markup=keyboard)
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton("🤖 ابدأ محادثة", url=f"https://t.me/{get_bot_information()[1]}?start=start")]])
+        await m.reply_text("مرحبا! أنا ثيو. لاكتشاف وظائفي ، ابدأ محادثة معي.", reply_markup=keyboard)
 
 
 @Client.on_message(filters.command("start", prefix) & ~filters.user(developer))
-@Client.on_callback_query(filters.regex("^start$"))
-async def start(c: Client, m: Message, strings):
-    if m.chat.type == "private":
-        if get_db_botname() is None:
-            botname = "سيمو"
-        else:
-            botname = get_db_botname()
+async def start(c: Client, m: Message):
+    await confirm_user(c, m)
+    if m.chat.type == enums.ChatType.PRIVATE:
+        botname = get_db_botname() or "القائد"
         x = f"""
 ـــــــــــــــــــــــــــــــــــــــــــــــــــــــــ
 🎤╖ أهلآ بك عزيزي أنا بوت {botname}
@@ -81,84 +74,46 @@ async def start(c: Client, m: Message, strings):
 ⬆️╜ سيتم ترقيتك مالك في البوت
 ـــــــــــــــــــــــــــــــــــــــــــــــــــــــــ
         """
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(strings("commands_btn"), callback_data="commandss")] +
-            [InlineKeyboardButton(strings("infos_btn"), callback_data="infos")],
-            [InlineKeyboardButton(strings("language_btn"), callback_data="chlang")],
-            [InlineKeyboardButton("ضيـف البـوت لمجمـوعتـك ✅",
-                                  url=f"https://t.me/{get_bot_information()[1]}?startgroup=new")],
-        ])
-        async for photo in c.iter_profile_photos(get_bot_information()[0], limit=1):
-            await m.reply_photo(photo.file_id, caption=x,
-                                reply_markup=keyboard)
-
-        await confirm_user(c, m)
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton("الاوامر 📚", callback_data="commandss")] + [InlineKeyboardButton("ℹ️ حول", callback_data="infos")], [InlineKeyboardButton("تغير اللغه 🌐", callback_data="chlang")], [InlineKeyboardButton("ضيـف البـوت لمجمـوعتـك ✅", url=f"https://t.me/{get_bot_information()[1]}?startgroup=dream")]])
+        async for photo in c.get_chat_photos(get_bot_information()[1], limit=1):
+            await m.reply_photo(photo.file_id, caption=x, reply_markup=keyboard)
     else:
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(strings("start_chat"), url=f"https://t.me/{get_bot_information()[1]}?start=start")]
-        ])
-        await m.reply_text(strings("group"),
-                           reply_markup=keyboard)
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton("🤖 ابدأ محادثة", url=f"https://t.me/{get_bot_information()[1]}?start=start")]])
+        await m.reply_text("مرحبا! أنا دريم. لاكتشاف وظائفي ، ابدأ محادثة معي.", reply_markup=keyboard)
 
 
 @Client.on_callback_query(filters.regex("^start_back$"))
-async def start_back(c: Client, m: CallbackQuery, strings):
-    if m.message.chat.type == "private":
-        if get_db_botname() is None:
-            botname = "سيمو"
-        else:
-            botname = get_db_botname()
-        x = f"""
-    ـــــــــــــــــــــــــــــــــــــــــــــــــــــــــ
-    🎤╖ أهلآ بك عزيزي أنا بوت {botname}
-    ⚙️╢ وظيفتي حماية المجموعات
-    ✅╢ لتفعيل البوت عليك اتباع مايلي 
-    🔘╢ أضِف البوت إلى مجموعتك
-    ⚡️╢ ارفعهُ » مشرف
-    ⬆️╜ سيتم ترقيتك مالك في البوت
-    ـــــــــــــــــــــــــــــــــــــــــــــــــــــــــ
-            """
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(strings("commands_btn"), callback_data="commandss")] +
-            [InlineKeyboardButton(strings("infos_btn"), callback_data="infos")],
-            [InlineKeyboardButton(strings("language_btn"), callback_data="chlang")],
-            [InlineKeyboardButton(strings("add_chat_btn"),
-                                  url=f"https://t.me/{get_bot_information()[1]}?startgroup=new")],
-        ])
-        async for photo in c.iter_profile_photos(get_bot_information()[0], limit=1):
-            await m.message.edit_text(x, reply_markup=keyboard)
+async def start_back(c: Client, m: CallbackQuery):
+    botname = get_db_botname() or "القائد"
+    x = f"""
+ـــــــــــــــــــــــــــــــــــــــــــــــــــــــــ
+🎤╖ أهلآ بك عزيزي أنا بوت {botname}
+⚙️╢ وظيفتي حماية المجموعات
+✅╢ لتفعيل البوت عليك اتباع مايلي 
+🔘╢ أضِف البوت إلى مجموعتك
+⚡️╢ ارفعهُ » مشرف
+⬆️╜ سيتم ترقيتك مالك في البوت
+ـــــــــــــــــــــــــــــــــــــــــــــــــــــــــ
+    """
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton("الاوامر 📚", callback_data="commandss")] + [InlineKeyboardButton("ℹ️ حول", callback_data="infos")], [InlineKeyboardButton("تغير اللغه 🌐", callback_data="chlang")], [InlineKeyboardButton("ضيـف البـوت لمجمـوعتـك ✅", url=f"https://t.me/{get_bot_information()[1]}?startgroup=dream")]])
+    async for photo in c.get_chat_photos(get_bot_information()[1], limit=1):
+        await m.message.edit_text(x, reply_markup=keyboard)
 
-    else:
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(strings("start_chat"), url=f"https://t.me/{get_bot_information()[1]}?start=start")]
-        ])
-        await m.message.reply_text(strings("group"),
-                                   reply_markup=keyboard)
 
 @Client.on_callback_query(filters.regex("^infos$"))
-async def infos(c: Client, m: CallbackQuery, strings):
+async def infos(c: Client, m: CallbackQuery):
     res = """
 ╭──── • ◈ • ────╮
-么 [َ ᥉᥆υᖇᥴᥱ ᥉ᥱꪔ᥆](t.me/FTTUTY)
-么 [َ᥉ ᥲ️ ꪔ Ꭵ ᖇ](t.me/DEV_SAMIR)
-么 [َ ᥉υρρ᥆ᖇƚ  ᥉ᥱꪔ᥆](t.me/FTTUTT0)
+么 [𝗦𝗢𝗨𝗥𝗖𝗘 𝗔𝗟𝗤𝗔𝗜𝗗](t.me/M_T_lI)
+么 [𝗔𝗦𝗞 𝗧𝗢 𝗠𝗘](t.me/M_T_lI)
+么 [𝑺𝑨𝑭𝑬𝑬𝑹](t.me/WK_Hl)
 ╰──── • ◈ • ────╯
 ⍟ 𝚃𝙷𝙴 𝙱𝙴𝚂𝚃 𝚂𝙾𝚄𝚁𝙲𝙴 𝙾𝙽 𝚃𝙴𝙻𝙴𝙶𝚁𝙰𝙼
         """
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(strings("back_btn", context="general"), callback_data="start_back")]
-    ])
-    await m.message.edit_text(res, reply_markup=keyboard, disable_web_page_preview=True, parse_mode="Markdown")
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton("« عوده", callback_data="start_back")]])
+    await m.message.edit_text(res, reply_markup=keyboard, disable_web_page_preview=True, parse_mode=enums.ParseMode.MARKDOWN)
 
 
 @Client.on_callback_query(filters.regex("^commandss$"))
 async def commandsss(c: Client, m: CallbackQuery):
     await command2(c, m)
-
-
-@Client.on_callback_query(filters.regex("^start@" + str(get_bot_information()[0]) + "$"))
-async def startsend(c: Client, m: CallbackQuery):
-    await m.message.delete()
-    await m.message.reply_text("◍ نعم حبيبى المطور 🥺❤️\n√")
-
-await command2("start", "general")
